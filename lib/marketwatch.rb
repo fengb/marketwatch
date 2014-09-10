@@ -1,4 +1,4 @@
-require 'marketwatch/version'
+#require 'marketwatch/version'
 
 require 'open-uri'
 require 'uri'

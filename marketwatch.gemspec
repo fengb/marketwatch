@@ -10,7 +10,7 @@ Gem::Specification.new do |s|
   s.email         = ['contact@fengb.info']
   s.summary       = %q{TODO: Write a short summary. Required.}
   s.description   = %q{TODO: Write a longer description. Optional.}
-  s.homepage      = ''
+  s.homepage      = 'https://github.com/fengb/marketwatch'
   s.license       = 'MIT'
 
   s.files         = Dir["lib/**/*"] + %w{LICENSE Rakefile README.md}
