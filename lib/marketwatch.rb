@@ -7,16 +7,16 @@ require 'date'
 require 'ostruct'
 
 module Marketwatch
-  def self.flashcharter
-    params = {
-      ticker: 'AAPL',
-      beginDate: Date.today - 7,
-      type: 1,
-      countryCode: 'US',
-      endDate: Date.today,
-      frequency: 5,
-      docSetUri: [90,103,159,173,183,184,3126,436,2988],
-    }
+  def self.flashcharter(params={})
+    raise unless params[:ticker]
+
+    params[:endDate] ||= Date.today
+    # 4 weeks of data just because
+    params[:beginDate] ||= params[:endDate] - 28
+    params[:type] ||= 1 # TODO: magic number
+    params[:countryCode] ||= 'US' # TODO: this isn't necessary
+    params[:frequency] ||= 5 # TODO: magic number
+    params[:docSetUri] ||= [90,103,159,173,183,184,3126,436,2988] # TODO: voodoo numbers
 
     encoded = encode_params(params)
     open "http://www.marketwatch.com/thunderball.flashcharter/JsonHandler.ashx?#{encoded}" do |f|
@@ -29,8 +29,8 @@ module Marketwatch
           low:  raw_data['Low'],
           last: raw_data['Last'],
           volume: raw_data['Volume'],
-          begin_time: Time.at(raw_data['BeginDateUTime']),
-          end_time: Time.at(raw_data['EndDateUTime']),
+          begin_time: Time.at(raw_data['BeginDateUTime']).utc,
+          end_time: Time.at(raw_data['EndDateUTime']).utc,
         )
       end
     end

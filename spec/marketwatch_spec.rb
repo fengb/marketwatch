@@ -2,13 +2,13 @@ require 'marketwatch'
 
 describe Marketwatch do
   describe '.flashcharter' do
-    it 'returns list of stuff' do
-      chart = Marketwatch.flashcharter
-      expect(chart.size).to be > 0
+    it 'returns 4 weeks of data' do
+      chart = Marketwatch.flashcharter(ticker: 'AAPL')
+      expect(chart.size).to be_within(2).of(20) # ±2 due to after hours and holidays
     end
 
     it 'returns list of begin_date/end_date' do
-      chart = Marketwatch.flashcharter
+      chart = Marketwatch.flashcharter(ticker: 'AAPL')
       chart.each do |row|
         expect(row.begin_time).to be_a(Time)
         expect(row.end_time).to be_a(Time)
@@ -16,7 +16,7 @@ describe Marketwatch do
     end
 
     it 'returns list of open/high/low/last/volume' do
-      chart = Marketwatch.flashcharter
+      chart = Marketwatch.flashcharter(ticker: 'AAPL')
       chart.each do |row|
         expect(row.open).to be_a(Numeric)
         expect(row.high).to be_a(Numeric)
@@ -27,7 +27,7 @@ describe Marketwatch do
     end
 
     it 'returns raw data' do
-      chart = Marketwatch.flashcharter
+      chart = Marketwatch.flashcharter(ticker: 'AAPL')
       chart.each do |row|
         expect(row.raw).to be_a(Hash)
       end
