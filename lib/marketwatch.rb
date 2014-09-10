@@ -1,8 +1,10 @@
+require 'marketwatch/version'
+
 require 'open-uri'
 require 'uri'
 require 'json'
-require 'marketwatch/version'
 require 'date'
+require 'ostruct'
 
 module Marketwatch
   def self.flashcharter
@@ -18,7 +20,19 @@ module Marketwatch
 
     encoded = encode_params(params)
     open "http://www.marketwatch.com/thunderball.flashcharter/JsonHandler.ashx?#{encoded}" do |f|
-      JSON.parse f.read
+      raw = JSON.parse f.read
+      raw['TimeSeriesOhlcDataPoint'].map do |raw_data|
+        OpenStruct.new(
+          raw:  raw_data,
+          open: raw_data['Open'],
+          high: raw_data['High'],
+          low:  raw_data['Low'],
+          last: raw_data['Last'],
+          volume: raw_data['Volume'],
+          begin_time: Time.at(raw_data['BeginDateUTime']),
+          end_time: Time.at(raw_data['EndDateUTime']),
+        )
+      end
     end
   end
 

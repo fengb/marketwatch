@@ -1,6 +1,39 @@
 require 'marketwatch'
 
 describe Marketwatch do
+  describe '.flashcharter' do
+    it 'returns list of stuff' do
+      chart = Marketwatch.flashcharter
+      expect(chart.size).to be > 0
+    end
+
+    it 'returns list of begin_date/end_date' do
+      chart = Marketwatch.flashcharter
+      chart.each do |row|
+        expect(row.begin_time).to be_a(Time)
+        expect(row.end_time).to be_a(Time)
+      end
+    end
+
+    it 'returns list of open/high/low/last/volume' do
+      chart = Marketwatch.flashcharter
+      chart.each do |row|
+        expect(row.open).to be_a(Numeric)
+        expect(row.high).to be_a(Numeric)
+        expect(row.low).to be_a(Numeric)
+        expect(row.last).to be_a(Numeric)
+        expect(row.volume).to be_a(Numeric)
+      end
+    end
+
+    it 'returns raw data' do
+      chart = Marketwatch.flashcharter
+      chart.each do |row|
+        expect(row.raw).to be_a(Hash)
+      end
+    end
+  end
+
   describe '.encode_params' do
     it 'glues all the params together' do
       encoded = Marketwatch.encode_params(a: 1, b: 2)
