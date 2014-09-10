@@ -27,14 +27,20 @@ module Marketwatch
     params.each do |key, value|
       if value.respond_to?(:each)
         value.each do |value|
-          array << "#{key}=#{URI.escape value.to_s}"
+          array << "#{key}=#{escape value}"
         end
-      elsif value.respond_to?(:strftime)
-        array << "#{key}=#{URI.escape value.strftime('%m/%d/%y %H:%M:%S')}"
       else
-        array << "#{key}=#{URI.escape value.to_s}"
+        array << "#{key}=#{escape value}"
       end
     end
     array.join('&')
+  end
+
+  def self.escape(value)
+    if value.respond_to?(:strftime)
+      URI.escape value.strftime('%m/%d/%y %H:%M:%S')
+    else
+      URI.escape value.to_s
+    end
   end
 end
