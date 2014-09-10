@@ -10,41 +10,55 @@ module Marketwatch
   def self.flashcharter(params={})
     raise unless params[:ticker]
 
-    params[:endDate] ||= Date.today
+    params[:end_date] ||= Date.today
     # 4 weeks of data just because
-    params[:beginDate] ||= params[:endDate] - 28
+    params[:begin_date] ||= params[:end_date] - 28
     params[:type] ||= 1 # TODO: magic number
-    params[:countryCode] ||= 'US' # TODO: this isn't necessary
+    params[:country_code] ||= 'US' # TODO: this isn't necessary
     params[:frequency] ||= 5 # TODO: magic number
-    params[:docSetUri] ||= [90,103,159,173,183,184,3126,436,2988] # TODO: voodoo numbers
+    params[:doc_set_uri] ||= [90,103,159,173,183,184,3126,436,2988] # TODO: voodoo numbers
 
     encoded = encode_params(params)
-    open "http://www.marketwatch.com/thunderball.flashcharter/JsonHandler.ashx?#{encoded}" do |f|
+    url = "http://www.marketwatch.com/thunderball.flashcharter/JsonHandler.ashx?#{encoded}"
+    open url do |f|
       raw = JSON.parse f.read
       raw['TimeSeriesOhlcDataPoint'].map do |raw_data|
-        OpenStruct.new(
-          raw:  raw_data,
-          open: raw_data['Open'],
-          high: raw_data['High'],
-          low:  raw_data['Low'],
-          last: raw_data['Last'],
-          volume: raw_data['Volume'],
-          begin_time: Time.at(raw_data['BeginDateUTime']).utc,
-          end_time: Time.at(raw_data['EndDateUTime']).utc,
-        )
+        OpenStruct.new.tap do |o|
+          o.raw        = raw_data
+          o.open       = raw_data['Open']
+          o.high       = raw_data['High']
+          o.low        = raw_data['Low']
+          o.last       = raw_data['Last']
+          o.volume     = raw_data['Volume']
+          o.begin_time = Time.at(raw_data['BeginDateUTime']).utc
+          o.end_time   = Time.at(raw_data['EndDateUTime']).utc
+          # Totally misnamed, but this adheres to the response
+          o.begin_date = o.begin_time
+          o.end_date   = o.end_time
+        end
       end
     end
   end
 
   def self.encode_params(params)
-    coerce_params!(params)
-    URI.encode_www_form(params)
+    preprocessed = preprocess_params(params)
+    URI.encode_www_form(preprocessed)
   end
 
-  def self.coerce_params!(params)
-    params.each do |key, value|
-      if value.respond_to?(:strftime)
-        params[key] = value.strftime('%m/%d/%y %H:%M:%S')
+  def self.camel(s)
+    s.to_s.gsub /_(.)/ do |match|
+      match[1].upcase
+    end
+  end
+
+  def self.preprocess_params(params)
+    {}.tap do |ret|
+      params.each do |key, value|
+        if value.respond_to?(:strftime)
+          ret[camel(key)] = value.strftime('%m/%d/%y %H:%M:%S')
+        else
+          ret[camel(key)] = value
+        end
       end
     end
   end

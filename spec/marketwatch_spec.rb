@@ -7,9 +7,11 @@ describe Marketwatch do
       expect(chart.size).to be_within(2).of(20) # ±2 due to after hours and holidays
     end
 
-    it 'returns list of begin_date/end_date' do
+    it 'returns list of begin_date/end_date/begin_time/end_time' do
       chart = Marketwatch.flashcharter(ticker: 'AAPL')
       chart.each do |row|
+        expect(row.begin_date).to be_a(Time)
+        expect(row.end_date).to be_a(Time)
         expect(row.begin_time).to be_a(Time)
         expect(row.end_time).to be_a(Time)
       end
@@ -53,6 +55,11 @@ describe Marketwatch do
     it 'converts dates and times' do
       encoded = Marketwatch.encode_params(a: Time.at(0).utc)
       expect(encoded).to eq('a=01%2F01%2F70+00%3A00%3A00')
+    end
+
+    it 'converts under_scores to camelCase' do
+      encoded = Marketwatch.encode_params(a_b_c: 'd')
+      expect(encoded).to eq('aBC=d')
     end
   end
 end
