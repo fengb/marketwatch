@@ -37,24 +37,15 @@ module Marketwatch
   end
 
   def self.encode_params(params)
-    array = []
-    params.each do |key, value|
-      if value.respond_to?(:each)
-        value.each do |value|
-          array << "#{key}=#{escape value}"
-        end
-      else
-        array << "#{key}=#{escape value}"
-      end
-    end
-    array.join('&')
+    coerce_params!(params)
+    URI.encode_www_form(params)
   end
 
-  def self.escape(value)
-    if value.respond_to?(:strftime)
-      URI.escape value.strftime('%m/%d/%y %H:%M:%S')
-    else
-      URI.escape value.to_s
+  def self.coerce_params!(params)
+    params.each do |key, value|
+      if value.respond_to?(:strftime)
+        params[key] = value.strftime('%m/%d/%y %H:%M:%S')
+      end
     end
   end
 end

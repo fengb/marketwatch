@@ -47,12 +47,12 @@ describe Marketwatch do
 
     it 'escapes values' do
       encoded = Marketwatch.encode_params(a: 'b c')
-      expect(encoded).to eq('a=b%20c')
+      expect(encoded).to eq('a=b+c')
     end
 
     it 'converts dates and times' do
       encoded = Marketwatch.encode_params(a: Time.at(0).utc)
-      expect(encoded).to eq('a=01/01/70%2000:00:00')
+      expect(encoded).to eq('a=01%2F01%2F70+00%3A00%3A00')
     end
   end
 end
