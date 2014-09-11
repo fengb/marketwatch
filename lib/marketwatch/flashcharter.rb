@@ -6,16 +6,38 @@ require 'ostruct'
 
 module Marketwatch
   module Flashcharter
+    TYPES = {
+      historical_prices: 1,
+      info: 21,
+    }
+
+    def self.info(params={})
+      raise unless params[:ticker]
+
+      params[:type] = TYPES[:info]
+
+      raw = raw_request(params)
+      OpenStruct.new(
+        raw: raw,
+        range: time(raw['Range']['First'])..time(raw['Range']['Last']),
+        instrument: OpenStruct.new(
+          common_name: raw['instrument']['CommonName'],
+          cusip: raw['instrument']['Cusip'],
+          ticker: raw['instrument']['Ticker'],
+        )
+      )
+    end
+
     def self.historical_prices(params={})
       raise unless params[:ticker]
+
+      params[:type] = TYPES[:historical_prices]
 
       params[:end_date] ||= Date.today
       # 4 weeks of data just because
       params[:begin_date] ||= params[:end_date] - 28
-      params[:type] ||= 1 # TODO: magic number
       params[:country_code] ||= 'US' # TODO: this isn't necessary
       params[:frequency] ||= 5 # TODO: magic number
-      params[:doc_set_uri] ||= [90,103,159,173,183,184,3126,436,2988] # TODO: voodoo numbers
 
       raw = raw_request(params)
       raw['TimeSeriesOhlcDataPoint'].map do |raw_data|
@@ -26,8 +48,8 @@ module Marketwatch
           o.low        = raw_data['Low']
           o.last       = raw_data['Last']
           o.volume     = raw_data['Volume']
-          o.begin_time = Time.at(raw_data['BeginDateUTime']).utc
-          o.end_time   = Time.at(raw_data['EndDateUTime']).utc
+          o.begin_time = time(raw_data['BeginDateUTime'])
+          o.end_time   = time(raw_data['EndDateUTime'])
           # Totally misnamed, but this adheres to the response
           o.begin_date = o.begin_time
           o.end_date   = o.end_time
@@ -36,6 +58,7 @@ module Marketwatch
     end
 
     def self.raw_request(params)
+      params[:doc_set_uri] ||= [90,103,159,173,183,184,3126,436,2988] # TODO: voodoo numbers
       encoded = encode_params(params)
       url = "http://www.marketwatch.com/thunderball.flashcharter/JsonHandler.ashx?#{encoded}"
       open url do |f|
@@ -64,6 +87,10 @@ module Marketwatch
           end
         end
       end
+    end
+
+    def self.time(num)
+      Time.at(num).utc
     end
   end
 end

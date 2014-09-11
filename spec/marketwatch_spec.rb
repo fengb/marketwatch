@@ -1,6 +1,25 @@
 require 'marketwatch'
 
 describe Marketwatch::Flashcharter do
+  describe '.info' do
+    it 'returns raw data' do
+      info = Marketwatch::Flashcharter.info(ticker: 'AAPL')
+      expect(info.raw).to be_a(Hash)
+    end
+
+    it 'returns range of times' do
+      info = Marketwatch::Flashcharter.info(ticker: 'AAPL')
+      expect(info.range.first).to be_a(Time)
+      expect(info.range.last).to be_a(Time)
+    end
+
+    it 'returns basic fields' do
+      info = Marketwatch::Flashcharter.info(ticker: 'AAPL')
+      expect(info.instrument.common_name).to be =~ /^Apple/
+      expect(info.instrument.cusip).to eq('037833100')
+    end
+  end
+
   describe '.historical_prices' do
     it 'returns 4 weeks of data' do
       chart = Marketwatch::Flashcharter.historical_prices(ticker: 'AAPL')
