@@ -1,14 +1,14 @@
 require 'marketwatch'
 
-describe Marketwatch do
-  describe '.flashcharter' do
+describe Marketwatch::Flashcharter do
+  describe '.historical_prices' do
     it 'returns 4 weeks of data' do
-      chart = Marketwatch.flashcharter(ticker: 'AAPL')
+      chart = Marketwatch::Flashcharter.historical_prices(ticker: 'AAPL')
       expect(chart.size).to be_within(2).of(20) # ±2 due to after hours and holidays
     end
 
     it 'returns list of begin_date/end_date/begin_time/end_time' do
-      chart = Marketwatch.flashcharter(ticker: 'AAPL')
+      chart = Marketwatch::Flashcharter.historical_prices(ticker: 'AAPL')
       chart.each do |row|
         expect(row.begin_date).to be_a(Time)
         expect(row.end_date).to be_a(Time)
@@ -18,7 +18,7 @@ describe Marketwatch do
     end
 
     it 'returns list of open/high/low/last/volume' do
-      chart = Marketwatch.flashcharter(ticker: 'AAPL')
+      chart = Marketwatch::Flashcharter.historical_prices(ticker: 'AAPL')
       chart.each do |row|
         expect(row.open).to be_a(Numeric)
         expect(row.high).to be_a(Numeric)
@@ -29,7 +29,7 @@ describe Marketwatch do
     end
 
     it 'returns raw data' do
-      chart = Marketwatch.flashcharter(ticker: 'AAPL')
+      chart = Marketwatch::Flashcharter.historical_prices(ticker: 'AAPL')
       chart.each do |row|
         expect(row.raw).to be_a(Hash)
       end
@@ -38,27 +38,27 @@ describe Marketwatch do
 
   describe '.encode_params' do
     it 'glues all the params together' do
-      encoded = Marketwatch.encode_params(a: 1, b: 2)
+      encoded = Marketwatch::Flashcharter.encode_params(a: 1, b: 2)
       expect(encoded).to eq('a=1&b=2')
     end
 
     it 'splits array arguments into separate entries' do
-      encoded = Marketwatch.encode_params(a: [1, 2])
+      encoded = Marketwatch::Flashcharter.encode_params(a: [1, 2])
       expect(encoded).to eq('a=1&a=2')
     end
 
     it 'escapes values' do
-      encoded = Marketwatch.encode_params(a: 'b c')
+      encoded = Marketwatch::Flashcharter.encode_params(a: 'b c')
       expect(encoded).to eq('a=b+c')
     end
 
     it 'converts dates and times' do
-      encoded = Marketwatch.encode_params(a: Time.at(0).utc)
+      encoded = Marketwatch::Flashcharter.encode_params(a: Time.at(0).utc)
       expect(encoded).to eq('a=01%2F01%2F70+00%3A00%3A00')
     end
 
     it 'converts under_scores to camelCase' do
-      encoded = Marketwatch.encode_params(a_b_c: 'd')
+      encoded = Marketwatch::Flashcharter.encode_params(a_b_c: 'd')
       expect(encoded).to eq('aBC=d')
     end
   end
